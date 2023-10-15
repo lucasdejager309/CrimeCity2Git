@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class InputCMD : MonoBehaviour
 {
-    static string alphabet = "abcdefghijklmnopqrstuvwxyz1234567890 ~`!@#$%^&*()-_+{}[]\\|:;\"'<>,.?/";
+    static string alphabet = "abcdefghijklmnopqrstuvwxyz1234567890~`!@#$%^&*()-_+{}[]|:;\"',.?/ <>\\";
     
     public string Text { get; private set;} = "";
     public string[] Components { get; private set;} = null;
@@ -45,7 +45,7 @@ public class InputCMD : MonoBehaviour
 
             //backspace
             if (e.keyCode == KeyCode.Backspace) {
-                if (Text.Length > 0) {
+                if (Text.Length > 0 && Position > 0) {
                     Position--;
                     Text = Text.Remove(Position, 1);
                 }
@@ -55,7 +55,7 @@ public class InputCMD : MonoBehaviour
             if (e.keyCode == KeyCode.LeftArrow && Position > 0) {
                 Position--;
             }
-            if (e.keyCode == KeyCode.RightArrow && Position < Text.Length) {
+            else if (e.keyCode == KeyCode.RightArrow && Position < Text.Length) {
                 Position++;
             }
             
