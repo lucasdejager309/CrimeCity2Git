@@ -1,50 +1,40 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class Game : MonoBehaviour
 {
-    public float TIME {get; private set;} = 0;
-
-    [SerializeField] TMP_Text commandTMP;
-    
-    [Header("Cursor")]
-    [SerializeField] char cursorChar = '|';
-    [SerializeField] float blinkTime = 0.2f;
-    
-    bool cursorOn = true;
-    float cTime = 0;
-
-    InputCMD inputCMD;
+    public GameObject[] textInputs;
 
     void Start() {
-        inputCMD = GetComponent<InputCMD>();
+        textInputs = GameObject.FindGameObjectsWithTag("TextInputUI");
     }
 
-    void Update() {
-        TIME += Time.deltaTime;
+    void OnGUI() {
+        Event e = Event.current;
+        
+        if (e.type == EventType.MouseDown) {
+            
+            PointerEventData eventDataCurrentPosition = new PointerEventData(EventSystem.current);
+            eventDataCurrentPosition.position = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+            List<RaycastResult> results = new List<RaycastResult>();
+            EventSystem.current.RaycastAll(eventDataCurrentPosition, results);
+            
 
-        UpdateCommand();
-    }
-
-    void UpdateCommand() {
-        commandTMP.text = inputCMD.Text;
-
-        if (TIME > cTime+blinkTime) {
-            cursorOn = !cursorOn;
-            cTime = TIME;
+            foreach (var i in textInputs) {
+                i.GetComponent<TextInputUI>().Focus(false);
+            }
+            foreach (var r in results) {
+                TextInputUI input = null;
+                input = r.gameObject.GetComponent<TextInputUI>(); 
+                if (input != null) {
+                    input.Focus(true);
+                    break;
+                }
+            }
         }
-
-        string cursor = null;
-        if (cursorOn) {
-            cursor = cursorChar.ToString();
-        } else {
-            cursor = "\u00A0";
-        }
-
-        commandTMP.text = commandTMP.text.Insert(inputCMD.Position, cursor);
     }
 }

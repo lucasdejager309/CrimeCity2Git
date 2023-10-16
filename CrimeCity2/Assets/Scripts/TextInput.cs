@@ -2,31 +2,36 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class InputCMD : MonoBehaviour
+public class TextInput : MonoBehaviour
 {
     static string alphabet = "abcdefghijklmnopqrstuvwxyz1234567890~`!@#$%^&*()-_+{}[]|:;\"',.?/ <>\\";
     
     public string Text { get; private set;} = "";
-    public string[] Components { get; private set;} = null;
-    bool cap = false;
     public int Position { get; private set;} = 0;
 
-    void OnGUI()
-    {
+    [SerializeField] TextInputUI UI;
+    bool cap = false;
+
+    void Start() {
+        UI = GetComponent<TextInputUI>();
+    }
+
+    void OnGUI() {
         Event e = Event.current;
         
-        if (e.isKey) {
+        if (e.isKey && UI.InFocus) {
             if (e.keyCode != KeyCode.None) {
                 UpdateCapitalization(e);
 
                 if (e.type == EventType.KeyDown) {
                     UpdateString(e);
+                    UI.UpdateText(Text, Position);
+                    
                 }
             }
         }
-
-        UpdateWords();
     }
 
     void UpdateString(Event e) {
@@ -81,7 +86,7 @@ public class InputCMD : MonoBehaviour
         }
     }
 
-    void UpdateWords() {
-        Components = Text.Split(' ');
-    }
+    // public string[] GetCMDComponents(string text) {
+    //     return text.Split(' ');
+    // }
 }
