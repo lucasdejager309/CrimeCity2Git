@@ -5,12 +5,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class Game : MonoBehaviour
+public class UIManager : MonoBehaviour
 {
     public GameObject[] textInputs;
 
     void Start() {
         textInputs = GameObject.FindGameObjectsWithTag("TextInputUI");
+        
     }
 
     void OnGUI() {
@@ -18,11 +19,10 @@ public class Game : MonoBehaviour
         
         if (e.type == EventType.MouseDown) {
             
-            PointerEventData eventDataCurrentPosition = new PointerEventData(EventSystem.current);
-            eventDataCurrentPosition.position = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+            PointerEventData eventdata = new PointerEventData(EventSystem.current);
+            eventdata.position = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
             List<RaycastResult> results = new List<RaycastResult>();
-            EventSystem.current.RaycastAll(eventDataCurrentPosition, results);
-            
+            EventSystem.current.RaycastAll(eventdata, results);
 
             foreach (var i in textInputs) {
                 i.GetComponent<TextInputUI>().Focus(false);

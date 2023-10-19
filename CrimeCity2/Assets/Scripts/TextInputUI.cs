@@ -15,6 +15,7 @@ public class TextInputUI : MonoBehaviour
     [SerializeField] float blinkTime = 0.3f;
     [SerializeField] char cursorChar = '_';
     [SerializeField] public RectTransform background;
+    float backgroundStartHeight;
 
     string displayText = "";
     int displayPos;
@@ -23,6 +24,7 @@ public class TextInputUI : MonoBehaviour
 
     void Start() {
         commandTMP = GetComponent<TMP_Text>();
+        backgroundStartHeight = background.sizeDelta.y;
     }
 
     void FixedUpdate() {
@@ -54,7 +56,11 @@ public class TextInputUI : MonoBehaviour
         commandTMP.text = displayText.Insert(displayPos, cursor);
 
         //scales background with command lineCount
-        background.sizeDelta = new Vector2(background.sizeDelta.x, commandTMP.fontSize+(commandTMP.fontSize*commandTMP.textInfo.lineCount)-commandTMP.fontSize);
+        if (commandTMP.textInfo.lineCount > 1 && commandTMP.fontSize*(commandTMP.textInfo.lineCount) > backgroundStartHeight){
+            background.sizeDelta = new Vector2(background.sizeDelta.x, commandTMP.fontSize + commandTMP.fontSize*(commandTMP.textInfo.lineCount-1));
+        } else {
+            background.sizeDelta = new Vector2(background.sizeDelta.x, backgroundStartHeight);
+        }
     }
 
     public void ShowCursor(bool b) {

@@ -1,15 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Events;
 
 public class TextInput : MonoBehaviour
 {
-    static string alphabet = "abcdefghijklmnopqrstuvwxyz1234567890~`!@#$%^&*()-_+{}[]|:;\"',.?/ <>\\";
+    static string alphabet = "abcdefghijklmnopqrstuvwxyz1234567890~`!@#$%^&*()-_+{}[]|:;\"',.?/ ";
     
     public string Text { get; private set;} = "";
     public int Position { get; private set;} = 0;
+
+    public UnityEvent<string> CommandSubmitted;
 
     [SerializeField] TextInputUI UI;
     bool cap = false;
@@ -66,7 +68,7 @@ public class TextInput : MonoBehaviour
             
             //sumbit command
             if (e.keyCode == KeyCode.Return) {
-                //make submit command event happen
+                CommandSubmitted.Invoke(Text);
 
                 Text = "";
                 Position = 0;
@@ -85,8 +87,4 @@ public class TextInput : MonoBehaviour
             }
         }
     }
-
-    // public string[] GetCMDComponents(string text) {
-    //     return text.Split(' ');
-    // }
 }
