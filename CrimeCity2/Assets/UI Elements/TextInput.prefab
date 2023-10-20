@@ -53,6 +53,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30d43b84d6577ad4ca7ba45cf690765a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  expandsWithText: 1
   blinkTime: 0.3
   cursorChar: 95
   background: {fileID: 4611803352066832238}

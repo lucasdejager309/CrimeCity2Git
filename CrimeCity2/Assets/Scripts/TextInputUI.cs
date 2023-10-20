@@ -12,6 +12,7 @@ public class TextInputUI : MonoBehaviour
     bool cursorOn = true;
     bool showCursor;
     
+    [SerializeField] bool expandsWithText;
     [SerializeField] float blinkTime = 0.3f;
     [SerializeField] char cursorChar = '_';
     [SerializeField] public RectTransform background;
@@ -19,12 +20,15 @@ public class TextInputUI : MonoBehaviour
 
     string displayText = "";
     int displayPos;
+    SelectionRange displaySelection = new SelectionRange();
 
     public bool InFocus = false;
 
     void Start() {
         commandTMP = GetComponent<TMP_Text>();
         backgroundStartHeight = background.sizeDelta.y;
+        if (expandsWithText) commandTMP.overflowMode = TextOverflowModes.Overflow;
+        else commandTMP.overflowMode = TextOverflowModes.Truncate;
     }
 
     void FixedUpdate() {
@@ -55,12 +59,23 @@ public class TextInputUI : MonoBehaviour
 
         commandTMP.text = displayText.Insert(displayPos, cursor);
 
-        //scales background with command lineCount
-        if (commandTMP.textInfo.lineCount > 1 && commandTMP.fontSize*(commandTMP.textInfo.lineCount) > backgroundStartHeight){
-            background.sizeDelta = new Vector2(background.sizeDelta.x, commandTMP.fontSize + commandTMP.fontSize*(commandTMP.textInfo.lineCount-1));
-        } else {
-            background.sizeDelta = new Vector2(background.sizeDelta.x, backgroundStartHeight);
+        if (displaySelection.IsActive) {
+            commandTMP.text = commandTMP.text.Insert(displaySelection.Start, "<u>");
+            if (commandTMP.text.Length > displaySelection.End+5) {
+                commandTMP.text = commandTMP.text.Insert(displaySelection.End+5, "</u>");
+            } else {
+                commandTMP.text += "</u>";
+            }
         }
+
+        //scales background with command lineCount
+        if (expandsWithText) {
+            if (commandTMP.textInfo.lineCount > 1 && commandTMP.fontSize*(commandTMP.textInfo.lineCount) > backgroundStartHeight){
+                background.sizeDelta = new Vector2(background.sizeDelta.x, commandTMP.fontSize + commandTMP.fontSize*(commandTMP.textInfo.lineCount-1));
+            } else {
+                background.sizeDelta = new Vector2(background.sizeDelta.x, backgroundStartHeight);
+            }
+        }   
     }
 
     public void ShowCursor(bool b) {
@@ -68,8 +83,9 @@ public class TextInputUI : MonoBehaviour
         UpdateDisplay();
     }
 
-    public void UpdateText(string text, int position) {
+    public void UpdateText(string text, int position, SelectionRange selection) {
         displayPos = position;
         displayText = text;
+        displaySelection = selection;
     }
 }
