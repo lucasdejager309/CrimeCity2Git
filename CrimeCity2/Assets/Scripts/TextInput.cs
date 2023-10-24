@@ -1,11 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 
 public class TextInput : MonoBehaviour
 {
     static string alphabet = "abcdefghijklmnopqrstuvwxyz1234567890~`!@#$%^&*()-_+{}[]|:;\"',.?/ ";
+    static string wordBreaks = " . , ; :\"'(){}[]!?/";
     
     public string Text { get; private set;} = "";
     public int Position { get; private set;} = 0;
@@ -39,37 +41,6 @@ public class TextInput : MonoBehaviour
     void UpdateString(Event e) {
         string key = Input.inputString;
 
-        //moving cursor < >
-        if (e.keyCode == KeyCode.LeftArrow	|| e.keyCode == KeyCode.RightArrow) {
-            //get direction
-            int dir = 0;
-            if (e.keyCode == KeyCode.LeftArrow) dir = -1;
-            else if (e.keyCode == KeyCode.RightArrow) dir = 1;
-            
-            int amount = 1;
-            //move over entire word when ctrl is pressed
-            // if (Input.GetKey(KeyCode.LeftControl)) {
-            //     if (Input.GetKey(KeyCode.LeftShift)) Selection.Include(Position+dir, -1);
-            //     if (dir == 1) {
-            //         for (int i = Position; i < Text.Length; i++) {
-            //             amount++;
-            //             if (wordBreaks.Contains(Text[i])) {
-            //                 break;
-            //             }
-            //         }
-            //     } else if (dir == -1) {
-            //         for (int i = Position-1; i >= 0; i--) {
-            //             amount++;
-            //             if (wordBreaks.Contains(Text[i])) {
-            //                 break;
-            //             }
-            //         }
-            //     }
-            // } else amount = 1;
-            
-            MovePosition(dir, amount);
-        }
-
         //Ctrl Keys
         if (Input.GetKey(KeyCode.LeftControl)) {
             //Ctrl + V
@@ -89,21 +60,6 @@ public class TextInput : MonoBehaviour
             }
         }
 
-        //add character to string
-        if (key != "" && alphabet.Contains(key.ToLower())) {
-            if (Selection.IsActive) {
-                BackSpace();
-            }
-            
-            if (cap) {
-                Text = Text.Insert(Position, key.ToUpper());
-                }
-            else {
-                Text = Text.Insert(Position, key.ToLower());
-            }
-            Position++;
-        }
-
         //backspace
         if (e.keyCode == KeyCode.Backspace) {
             BackSpace();
@@ -116,15 +72,95 @@ public class TextInput : MonoBehaviour
 
         //home
         if (e.keyCode == KeyCode.Home) {
-            if (Input.GetKey(KeyCode.LeftShift)) Selection.Include(Position-1, -1);
+            if (Input.GetKey(KeyCode.LeftShift)) Selection.Include(Position, -1); else Selection.Clear();
             MovePosition(-1, Position);
+
         }
 
         //end
         if (e.keyCode == KeyCode.End) {
-            if (Input.GetKey(KeyCode.LeftShift)) Selection.Include(Position, -1);
+            if (Input.GetKey(KeyCode.LeftShift)) Selection.Include(Position, 1); else Selection.Clear();
             MovePosition(1, Text.Length-Position);
         }
+
+        //add character to string
+        if (key != "" && alphabet.Contains(key.ToLower())) {
+            if (Selection.IsActive) {
+                BackSpace();
+            }
+            
+            if (cap) {
+                Text = Text.Insert(Position, key.ToUpper());
+                }
+            else {
+                Text = Text.Insert(Position, key.ToLower());
+            }
+            Position += key.Length;
+        }
+
+        //moving cursor < >
+        if (e.keyCode == KeyCode.LeftArrow	|| e.keyCode == KeyCode.RightArrow) {
+            
+            //clear selection
+            if (!Input.GetKey(KeyCode.LeftShift)) {
+                Selection.Clear();
+            }
+
+            //get direction
+            int dir = 0;
+            if (e.keyCode == KeyCode.LeftArrow) dir = -1;
+            else if (e.keyCode == KeyCode.RightArrow) dir = 1;
+
+            int amount = GetWordEndAmount(Text, dir);
+                
+            //move position index in text
+            MovePosition(dir, amount);      
+        }
+        
+    }
+
+    int GetWordEndAmount(string text, int dir) {
+        int amount = 1;
+        if (Input.GetKey(KeyCode.LeftControl)) {
+            if (dir == 1) {
+                for (int i = Position; i < text.Length; i++) {
+                    if (i == text.Length-1) {
+                        break;
+                    }
+                    
+                    amount++;
+
+                    if (wordBreaks.Contains(text[i])) {
+                        if (amount > 2) {
+                            amount -= 2;
+                            break;
+                        } else {
+                            amount -= 1;
+                            break;
+                        }
+                    }
+                }
+            } else if (dir == -1) {
+                for (int i = Position-1; i >= 0; i--) {
+                    if (i == 0) {
+                        break;
+                    }
+                    
+                    amount++;
+
+                    if (wordBreaks.Contains(Text[i])) {
+                        if (amount > 2) {
+                            amount -= 2;
+                            break;
+                        } else {
+                            amount = 1;
+                            break;
+                        }
+                    }
+                }
+            }
+        } 
+            return amount;
     }
 
     void BackSpace() {
@@ -162,13 +198,18 @@ public class TextInput : MonoBehaviour
     }
 
     void MovePosition(int dir, int amount) {
-        if (Position+dir*amount >= 0 && Position+dir*amount <= Text.Length) {
-                      
-            Position += dir*amount;
+        if ((Position != 0 && dir == -1) || (Position != Text.Length && dir == 1)) {
+            //select character if shift is pressed
+            if (Input.GetKey(KeyCode.LeftShift)) Selection.Include(Position+dir, dir);
+            
+            if (Position+dir*amount >= 0 && Position+dir*amount <= Text.Length) {  
+                Position += dir*amount;
+            }
 
-            if (Input.GetKey(KeyCode.LeftShift)) {
+            //select entire word if shift and control are pressed
+            if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.LeftControl)) {
                 Selection.Include(Position, dir);
-            } else Selection.Clear();
+            }
         }
     }   
 
@@ -211,6 +252,8 @@ public class SelectionRange {
                 Start = pos;
             }
         }
+
+        if (Start < 0) Start = 0;
     }
 
     public void Clear() {
