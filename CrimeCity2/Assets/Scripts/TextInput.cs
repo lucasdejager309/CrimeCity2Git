@@ -7,7 +7,7 @@ using UnityEngine.Events;
 public class TextInput : MonoBehaviour
 {
     static string alphabet = "abcdefghijklmnopqrstuvwxyz1234567890~`!@#$%^&*()-_+{}[]|:;\"',.?/ ";
-    static string wordBreaks = " . , ; :\"'(){}[]!?/";
+    static string wordBreaks = " . , ; :\"'(){}[]!?/-+_";
     
     public string Text { get; private set;} = "";
     public int Position { get; private set;} = 0;
@@ -71,16 +71,17 @@ public class TextInput : MonoBehaviour
         }
 
         //home
-        if (e.keyCode == KeyCode.Home) {
-            if (Input.GetKey(KeyCode.LeftShift)) Selection.Include(Position, -1); else Selection.Clear();
+        if (e.keyCode == KeyCode.Home && Position != 0) {
+            if (Input.GetKey(KeyCode.LeftShift)) Selection.Include(Position-1, -1);
             MovePosition(-1, Position);
-
+            if (Input.GetKey(KeyCode.LeftShift)) Selection.Include(Position, -1); else Selection.Clear();
         }
 
         //end
-        if (e.keyCode == KeyCode.End) {
-            if (Input.GetKey(KeyCode.LeftShift)) Selection.Include(Position, 1); else Selection.Clear();
+        if (e.keyCode == KeyCode.End && Position != Text.Length) {
+            if (Input.GetKey(KeyCode.LeftShift)) Selection.Include(Position, 1);
             MovePosition(1, Text.Length-Position);
+            if (Input.GetKey(KeyCode.LeftShift)) Selection.Include(Position, 1); else Selection.Clear();
         }
 
         //add character to string
@@ -117,6 +118,7 @@ public class TextInput : MonoBehaviour
             MovePosition(dir, amount);      
         }
         
+        //Debug.Log(Position + " " + Selection.Start + "-" + Selection.End);
     }
 
     int GetWordEndAmount(string text, int dir) {
